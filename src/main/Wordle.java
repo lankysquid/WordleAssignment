@@ -2,20 +2,18 @@ package main;
 
 import java.io.*;
 import java.util.*;
-import java.text.Normalizer;
 
 
 public class Wordle {
 
     // Declaring variables and arrayLists
-    protected String chosenWordListFileName;
-    protected String chosenWord;
-    protected List<String> chosenWordList;
+    protected String secretWordListFileName;
+    protected String secretWord;
+    protected List<String> secretWordList;
     protected List<String> greenLetters = new ArrayList<>();
     protected List<String> yellowLetters = new ArrayList<>();
     protected List<String> greyLetters = new ArrayList<>();
     protected List<String> userGuesses = new ArrayList<>();
-    protected String result;
     protected String youWonMessage;
     protected String youLostMessage;
 
@@ -26,15 +24,19 @@ public class Wordle {
     public static final String ANSI_GREY_BACKGROUND = "\u001B[100m";
     public static final String ANSI_CLEAR_SCREEN = "\033[H\033[2J";
 
+    /**
+     * Default constructor that sets simple local variables
+     */
     public Wordle() {
-        chosenWordListFileName = "src/main/dictionary.txt";
-        result = "Result: ";
-        youWonMessage = "CONGRATULATIONS! YOU WON! :)";
-        youLostMessage = "YOU LOST :( THE WORD CHOSEN BY THE GAME IS: ";
+        secretWordListFileName = "src/main/dictionary.txt"; // don't change
+        youWonMessage = "CONGRATULATIONS! YOU WON! :)"; // You can change this
+        youLostMessage = "YOU LOST :( THE WORD CHOSEN BY THE GAME IS: "; // you can change this
     }
     // METHODS
 
-    // print instructions
+    /**
+     * Prints basic instructions for the user once at the beginning of the game.
+     */
     public void printInstructions() {
         System.out.println("The game has chosen a 5-letter word for you to guess.");
         System.out.println("You have 6 tries. In each guess, the game will confirm which letters the chosen word and the guessed word have in common:");
@@ -43,23 +45,36 @@ public class Wordle {
         System.out.println("- Letters highlighted in " + ANSI_GREY_BACKGROUND + "grey" + ANSI_RESET + " do not appear in the chosen word.");
     }
 
-    // ask the user for their first word
+    // ask the user for their first guess
     public void askForFirstGuess() {
         System.out.println();
         System.out.println("Please write down your first guess:");
     }
 
-    // verify the validity of the user word by length and check against available options
+    /**
+     * Obtains the users guess and validates it against 3 criteria
+     * 1) The user's guess has exactly 5 characters
+     * 2) The user's guess is within the wordList provided
+     * 3) The user's guess does not contain already guessed grey letters
+     * For each failure scenario, this method prints a unique error message
+     * and prompts the user to input another guess.
+     * @param wordList the list of words that the user's word must be in
+     * @param index the guess index of the user's input
+     * @return a valid user guess
+     */
     public String obtainValidUserWord (List<String> wordList, int index) {
         Scanner myScanner = new Scanner(System.in); // Create a Scanner object
         String userWord = myScanner.nextLine();     // Read user input
-        userWord = userWord.toLowerCase();          // covert to lowercase
+        userWord = userWord.toUpperCase();          // covert to lowercase
 
         // check the length of the word and if it exists
-        while ((userWord.length() != 5) || !(wordList.contains(userWord))) {
+        while ((userWord.length() != 5)
+                || !(wordList.contains(userWord.toLowerCase()))
+                || containsGreyLetters(greyLetters, userWord)
+        ) {
             if ((userWord.length() != 5)) {
                 System.out.println("The word " + userWord + " does not have 5 letters.");
-            } else if (noGreyLetters(greyLetters, userWord)) {
+            } else if (containsGreyLetters(greyLetters, userWord)) {
                 System.out.println("The word " + userWord  + " contains letters not allowed.");
             }
             else {
@@ -70,32 +85,44 @@ public class Wordle {
             System.out.print((index + 1) + ") ");
             userWord = myScanner.nextLine();
         }
-        //myScanner.close();
         return userWord;
     }
 
-    public boolean noGreyLetters(List<String> greyLetters, String word) {
+    /**
+     * Confirms the existence of an already greyed out letter within a string
+     * @param greyLetters list of grey letters as strings (you can use arrayList methods)
+     * @param word the word to be checked
+     * @return true if there are no grey letter in word, otherwise false
+     */
+    public boolean containsGreyLetters(List<String> greyLetters, String word) {
         for (String c : greyLetters) {
-            if (word.contains(c)) return false;
+            if (word.contains(c)) return true;
         }
-        return true;
+        return false;
     }
 
+    /**
+     * Prints a facsimile keyboard with the letters appropriately colored based on user guesses
+     * @param greenLetters list of green letters
+     * @param yellowLetters list of yellow letters
+     * @param greyLetters list of grey letters
+     */
     public void printColoredKeyboard(List<String> greenLetters, List<String> yellowLetters, List<String> greyLetters) {
-        String qwerty = "Q W E R T Y U I O P\n" +
-                        " A S D F G H J K L\n"  +
-                        "  Z X C V B N M";
-        String output = "";
+        String qwerty = """
+                Q W E R T Y U I O P
+                 A S D F G H J K L
+                  Z X C V B N M""";
+        StringBuilder output = new StringBuilder();
         for (int i = 0; i < qwerty.length(); i++) {
             String letter = qwerty.substring(i,i +1);
             if (greenLetters.contains(letter)) {
-                output += ANSI_GREEN_BACKGROUND + letter + ANSI_RESET;
+                output.append(ANSI_GREEN_BACKGROUND).append(letter).append(ANSI_RESET);
             } else if (yellowLetters.contains(letter)) {
-                output += ANSI_YELLOW_BACKGROUND + letter + ANSI_RESET;
+                output.append(ANSI_YELLOW_BACKGROUND).append(letter).append(ANSI_RESET);
             } else if (greyLetters.contains(letter)) {
-                output += ANSI_GREY_BACKGROUND + letter + ANSI_RESET;
+                output.append(ANSI_GREY_BACKGROUND).append(letter).append(ANSI_RESET);
             } else {
-                output += letter;
+                output.append(letter);
             }
         }
         System.out.println("\n\n===================");
@@ -103,18 +130,23 @@ public class Wordle {
         System.out.println("===================");
     }
 
-
+    /**
+     * Prints ths dictionary.com link to the definition of the random secrete word
+     * at the end of the round
+     * @param randomChosenWord the secret word
+     */
     public void printDefinitionLink (String randomChosenWord) { // prints the link to the dictionary definition of the chosen word
         System.out.println("The word's definition: https://www.merriam-webster.com/dictionary/" + randomChosenWord);
     }
 
-
-
-    // Read the dictionary and assemble the dictionary arrayList from which to choose the random chosen word
+    /**
+     * Reads the dictionary.txt file and adds all the words to a list
+     * @return a list of words that the answer could come from
+     */
     public List<String> readDictionary() {
         List<String> wordList = new ArrayList<>();
         try {
-            File file = new File(chosenWordListFileName);
+            File file = new File(secretWordListFileName);
             Scanner myReader = new Scanner(file);
             while (myReader.hasNextLine()) {
                 wordList.add(myReader.nextLine());
@@ -128,17 +160,21 @@ public class Wordle {
 
     }
 
-    // get a random word from the dictionary arraylist
+    /**
+     * Retrieves a random word from the word list
+     * @param wordList the list of possible answer words
+     * @return a random string from the list
+     */
     public String getRandomWord(List<String> wordList) {
-        Random rand = new Random(); //instance of random class
-        int upperbound = wordList.size();
-        //generate random values from 0 to arrayList size
-        int int_random = rand.nextInt(upperbound);
-        return wordList.get(int_random);
+        return wordList.get(new Random().nextInt(wordList.size()));
     }
 
-    // method that replaces a char in a string at a specific index
-
+    /**
+     * Converts a String to an ArrayList of single character Strings
+     * @param word word to be converted
+     * @return an ArrayList with each character from word as it's own
+     *          String in the list
+     */
     public ArrayList<String> wordToList(String word) {
         ArrayList<String> characterList = new ArrayList<>();
         for (int i = 0; i < word.length(); i++) {
@@ -147,9 +183,16 @@ public class Wordle {
         return characterList;
     }
 
-    public String analyzeUserGuess(String chosenWord, String userGuess) {
+    /**
+     * Converts the user's guessed word into a word with appropriate colors,
+     * and adds the letters to the appropriate world list
+     * @param secretWord secret word to compare against
+     * @param userGuess the user's word to be analyed
+     * @return the user's word with the correct collors in the background
+     */
+    public String analyzeUserGuess(String secretWord, String userGuess) {
         String reColoredWord = "";
-        ArrayList<String> chosenList = wordToList(chosenWord);
+        ArrayList<String> chosenList = wordToList(secretWord);
         ArrayList<String> userList = wordToList(userGuess);
 
         for (int i = 0; i < userList.size(); i++) {
@@ -174,6 +217,10 @@ public class Wordle {
         }
         return reColoredWord;
     }
+
+    /**
+     * Prints the list of recolored user guesses to the screen
+     */
     public void printGuesses() {
         System.out.println(ANSI_CLEAR_SCREEN);
         System.out.flush();
@@ -183,6 +230,10 @@ public class Wordle {
         }
     }
 
+    /**
+     * Main gameplay loop that asks for the six guesses from the user
+     * @param wordList the list of words with the possible answer
+     */
     public void loopThroughSixGuesses(List<String> wordList) {
 
         for (int j = 0; j < 6; j++) {
@@ -190,15 +241,15 @@ public class Wordle {
             String userWord = obtainValidUserWord(wordList, j);
 
             // check if the user won: the userWord is the same as chosenWord
-            if (userWord.equals(chosenWord)) {
-                System.out.println((result + ANSI_GREEN_BACKGROUND + userWord.toUpperCase() + ANSI_RESET));
+            if (userWord.equals(secretWord)) {
+                System.out.println((ANSI_GREEN_BACKGROUND + userWord.toUpperCase() + ANSI_RESET));
                 System.out.println();
                 System.out.println(youWonMessage);
                 System.out.println();
-                printDefinitionLink(chosenWord);
+                printDefinitionLink(secretWord);
                 System.exit(0);
             } else {
-                String analyzedWord = analyzeUserGuess(chosenWord, userWord);
+                String analyzedWord = analyzeUserGuess(secretWord, userWord);
                 userGuesses.add(analyzedWord);
 
                 printColoredKeyboard(greenLetters, yellowLetters, greyLetters);
@@ -206,25 +257,24 @@ public class Wordle {
             }
         }
         System.out.println();
-        System.out.println(youLostMessage + chosenWord.toUpperCase() + ".");
+        System.out.println(youLostMessage + secretWord.toUpperCase() + ".");
         System.out.println();
-        printDefinitionLink(chosenWord);
+        printDefinitionLink(secretWord);
     }
 
-    // play method that calls on all other methods.
+    /**
+     * Gameplay method that controls the flow of the game.
+     */
     public void play () {
-        chosenWordList =  readDictionary();
+        secretWordList =  readDictionary();
         // Selecting a random word from the dictionary
-        chosenWord = getRandomWord(chosenWordList);
-
+        secretWord = getRandomWord(secretWordList);
         // Instructions to the game
         this.printInstructions();
-
         // ask the user for the first guess
         this.askForFirstGuess();
-
-        this.loopThroughSixGuesses(chosenWordList);
-
+        // main gameplay loop
+        this.loopThroughSixGuesses(secretWordList);
     }
 
 }
