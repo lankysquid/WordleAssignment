@@ -2,10 +2,7 @@ package main;
 
 import java.io.*;
 import java.util.*;
-
-
 public class Wordle {
-
     // Declaring variables and arrayLists
     protected String secretWordListFileName;
     protected String secretWord;
@@ -28,11 +25,10 @@ public class Wordle {
      * Default constructor that sets simple local variables
      */
     public Wordle() {
-        secretWordListFileName = "src/main/dictionary.txt"; // don't change
+        secretWordListFileName = "src/main/dictionary.txt"; // DON'T CHANGE THIS
         youWonMessage = "CONGRATULATIONS! YOU WON! :)"; // You can change this
         youLostMessage = "YOU LOST :( THE WORD CHOSEN BY THE GAME IS: "; // you can change this
     }
-    // METHODS
 
     /**
      * Prints basic instructions for the user once at the beginning of the game.
@@ -64,10 +60,9 @@ public class Wordle {
      */
     public String obtainValidUserWord (List<String> wordList, int index) {
         Scanner myScanner = new Scanner(System.in); // Create a Scanner object
-        String userWord = myScanner.nextLine();     // Read user input
-        userWord = userWord.toUpperCase();          // covert to lowercase
+        String userWord = myScanner.nextLine().toUpperCase();  // Read user input as UpperCase
 
-        // check the length of the word and if it exists
+        // check the length of the word and if it exists or if it has illegal char
         while ((userWord.length() != 5)
                 || !(wordList.contains(userWord.toLowerCase()))
                 || containsGreyLetters(greyLetters, userWord)
@@ -83,7 +78,7 @@ public class Wordle {
             // Ask for a new word
             System.out.println("Please, submit a new 5-letter word.");
             System.out.print((index + 1) + ") ");
-            userWord = myScanner.nextLine();
+            userWord = myScanner.nextLine().toUpperCase();
         }
         return userWord;
     }
@@ -157,7 +152,6 @@ public class Wordle {
             e.printStackTrace();
         }
         return wordList;
-
     }
 
     /**
@@ -192,22 +186,21 @@ public class Wordle {
      */
     public String analyzeUserGuess(String secretWord, String userGuess) {
         String reColoredWord = "";
-        ArrayList<String> chosenList = wordToList(secretWord);
-        ArrayList<String> userList = wordToList(userGuess);
-
-        for (int i = 0; i < userList.size(); i++) {
-            String letter = userList.get(i);
-            int letterIndex = chosenList.indexOf(letter);
+        ArrayList<String> secretWordAsList = wordToList(secretWord);
+        ArrayList<String> userWordAsList = wordToList(userGuess);
+        for (int i = 0; i < userWordAsList.size(); i++) {
+            String letter = userWordAsList.get(i);
+            int letterIndex = secretWordAsList.indexOf(letter.toLowerCase());
             if(letterIndex >= 0) {
                 if (letterIndex == i) {
                     reColoredWord += ANSI_GREEN_BACKGROUND + letter + ANSI_RESET;
                     greenLetters.add(letter.toUpperCase());
                     yellowLetters.removeIf(s -> greenLetters.contains(s));
-                    chosenList.set(letterIndex, "");
+                    secretWordAsList.set(letterIndex, "");
                 } else {
                     reColoredWord += ANSI_YELLOW_BACKGROUND + letter + ANSI_RESET;
                     yellowLetters.add(letter.toUpperCase());
-                    chosenList.set(letterIndex, "");
+                    secretWordAsList.set(letterIndex, "");
                 }
 
             } else {
@@ -216,6 +209,24 @@ public class Wordle {
             }
         }
         return reColoredWord;
+    }
+
+    /**
+     * Recolors the user's guess according to the wrd list
+     */
+    public String recolorWord(String word, List<String> greyLetters, List<String> greenLetters, List<String> yellowLetters) {
+        StringBuilder recoloredWord = new StringBuilder();
+        List<String> wordAsList = wordToList(word);
+        for (String letter : wordAsList) {
+            if (greenLetters.contains(letter)) {
+                recoloredWord.append(ANSI_GREEN_BACKGROUND).append(letter).append(ANSI_RESET);
+            } else if (yellowLetters.contains(letter)) {
+                recoloredWord.append(ANSI_YELLOW_BACKGROUND).append(letter).append(ANSI_RESET);
+            } else {
+                recoloredWord.append(ANSI_GREY_BACKGROUND).append(letter).append(ANSI_RESET);
+            }
+        }
+        return recoloredWord.toString();
     }
 
     /**
@@ -235,7 +246,6 @@ public class Wordle {
      * @param wordList the list of words with the possible answer
      */
     public void loopThroughSixGuesses(List<String> wordList) {
-
         for (int j = 0; j < 6; j++) {
             System.out.print((j + 1) + ") ");
             String userWord = obtainValidUserWord(wordList, j);
@@ -276,6 +286,5 @@ public class Wordle {
         // main gameplay loop
         this.loopThroughSixGuesses(secretWordList);
     }
-
 }
 
