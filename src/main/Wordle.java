@@ -64,32 +64,24 @@ public class Wordle {
         System.out.println("Please write down your first guess:");
     }
 
+    /***********************************************************
+     *  Begin Assignment
+     */
+
     /**
      * Main gameplay loop that asks for the six guesses from the user
      * @param wordList the list of words with the possible answer
      */
     public void loopThroughSixGuesses(List<String> wordList) {
-        for (int j = 0; j < 6; j++) {
-            System.out.print((j + 1) + ") ");
-            String userWord = obtainValidUserWord(wordList, j);
-            String analyzedWord = analyzeUserGuess(secretWord, userWord);
-            userGuesses.add(analyzedWord);
-            printColoredKeyboard();
-            printGuesses();
-
-            // check if the user won: the userWord is the same as chosenWord
-            if (userWord.equalsIgnoreCase(secretWord)) {
-                System.out.println();
-                System.out.println(youWonMessage);
-                System.out.println();
-                printDefinitionLink(secretWord);
-                System.exit(0);
-            }
-        }
-        System.out.println();
-        System.out.println(youLostMessage + secretWord.toUpperCase() + ".");
-        System.out.println();
-        printDefinitionLink(secretWord);
+        // Loop through the six guesses
+            // print the guess number with ')'
+            // obtain a valid user guess and save it
+            // analyze the valid users guess and add it to userGuesses
+            // print the keyboard and guesses
+            // check if the user won: the userWord is the same as secretWord (case?)
+                // print the winning message and definition link
+                // exit the program with System.exit(0);
+        // print the loosing message and the definition link
     }
 
     /**
@@ -104,28 +96,12 @@ public class Wordle {
      * @return a valid user guess in all capital letters
      */
     public String obtainValidUserWord (List<String> wordList, int index) {
-        Scanner myScanner = new Scanner(System.in); // Create a Scanner object
-        String userWord = myScanner.nextLine().toUpperCase();  // Read user input as UpperCase
-
+        // Create a Scanner object
+        // Read user input as UpperCase
         // check the length of the word and if it exists or if it has illegal char
-        while ((userWord.length() != 5)
-                || !(wordList.contains(userWord.toLowerCase()))
-                || containsGreyLetters(greyLetters, userWord)
-        ) {
-            if ((userWord.length() != 5)) {
-                System.out.println("The word " + userWord + " does not have 5 letters.");
-            } else if (containsGreyLetters(greyLetters, userWord)) {
-                System.out.println("The word " + userWord  + " contains letters not allowed.");
-            }
-            else {
-                System.out.println("The word " + userWord + " is not in the word list.");
-            }
-            // Ask for a new word
-            System.out.println("Please, submit a new 5-letter word.");
-            System.out.print((index + 1) + ") ");
-            userWord = myScanner.nextLine().toUpperCase();
-        }
-        return userWord;
+            // hint, a while loop will help
+        // return the valid guess
+        return null;
     }
 
     /**
@@ -136,9 +112,6 @@ public class Wordle {
      * @return true if there are no grey letter in word, otherwise false
      */
     public boolean containsGreyLetters(List<String> greyLetters, String word) {
-        for (String c : greyLetters) {
-            if (word.contains(c)) return true;
-        }
         return false;
     }
 
@@ -148,8 +121,12 @@ public class Wordle {
      * @return a random string from the list
      */
     public String getRandomWord(List<String> wordList) {
-        return wordList.get(new Random().nextInt(wordList.size()));
+        return null;
     }
+
+    /**
+     * End Assignment
+     *********************************************************************/
 
     /**
      * Converts the user's guessed word into a word with appropriate colors,
